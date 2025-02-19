@@ -71,22 +71,21 @@ for (i in 1:10) image(0:28, 0:28, array(cluster_centers[i,], dim=c(28,28)),
 
 
 # Versuche deshalb eine supervised Pattern Recognition Technik, #
-#  Deshalb passe ich hier ein Gausches Mischmodell an, d.h. ich betrachte jede Ziffer als Gaussverteilung
+#  Deshalb passe ich hier ein Gausches Mischmodell an, d.h. ich betrachte jede Ziffer als gemischte Verteilung von Gaussverteilungen
 # in einem 784(28*28)-dimensionalen Raum.
 
 if (!require("mclust")) install.packages("mclust"); library("mclust")
 
+# passe ein Modell an, das dauert etwas ...
 
-gmm_model <- MclustDA(X_train, class = y_train, G = 10)
-
-summary(gmm_model)
+gmm_model <- MclustDA(X_train, class = y_train,  D=1:2)
 
 par(mfrow=c(2,5))
 par(mar=c(0, 0, 2, 0)+0.1)
 
 for (i in 1:10)
 {
-  im <- array(gmm_model$parameters$mean[,i], dim=c(28,28))
+  im <- array(gmm_model$models[[i]]$parameters$mean[,1], dim=c(28,28))
   im <- t(apply(im, 1, rev))
   image(0:28, 0:28, im, ann = FALSE, main = "a", xaxt='n', yaxt='n',
         col = gray.colors(16, start = 0, end = 1, gamma = 1))
@@ -109,13 +108,15 @@ tt = table(result)
 
 print(tt)
 
+#Anzahl der 1000 Ziffern, die korrekt bestimmt sind:
 
-# sum(diag(tt)) = 918 der 1000 Ziffern sind korrekt bestimmt.
-# Besonder häufig wurde  (12 Mal) die Ziffer 4 als 9 bestimmt und die Ziffer 8 als 3 (8 Mal)
+sum(diag(tt))
+# Besonders häufig wurde  (10 Mal) die Ziffer 8 als 3 erkannt
 
 
-# Bessere Vorhersagen können durch höhere Auflösung beim scannen der Ziffern erreicht werden.
-# Dann ist dringend empfohlen, vorher mit einer PCA zu beginnen, um die Dimnsionalität zu reduzieren.
+# Bessere Vorhersagen können durch höhere Auflösung beim Scannen der Ziffern oder durch
+# eine höhere Anzahl der Komponenten des mixed models für jede Ziffer (z.B. G=1:10) erreicht werden.
+# Dann ist dringend empfohlen, vorher mit einer PCA zu beginnen, um die Dimensionalität zu reduzieren.
 # Desweiteren sollten größere Datensätze zu besseren Mustererkennungen führen.
 # siehe
-# https://github.com/peteflorence/MachineLearning6.867/tree/master/Bishop
+# https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf
